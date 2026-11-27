@@ -19,6 +19,26 @@ const readingPicks = [
   ['Wyrd Sisters','Terry Pratchett','Macbeth','Three meddling witches, a murdered king and a traveling theater troupe turn familiar Scottish tragedy into comedy.',true],
 ];
 
+readingPicks.push(...[
+['A Deadly Education','Naomi Novik','The Empyrean|Powerless','A lethal magical education turns finding allies into a survival skill.'],
+['The Raven Boys','Maggie Stiefvater','Caraval|The Inheritance Games','An old legend pulls a close-knit group into a search full of secrets.'],
+['The Gilded Wolves','Roshani Chokshi','Caraval|The Inheritance Games','A crew of specialists follows puzzles through an alternate Paris.'],
+['An Ember in the Ashes','Sabaa Tahir','Powerless|The Traitor’s Game','An enslaved scholar and a soldier make dangerous choices inside an empire.'],
+['The Winner’s Curse','Marie Rutkoski','The Folk of the Air|Powerless','A strategist falls for someone whose loyalties could overturn her world.'],
+['The Naturals','Jennifer Lynn Barnes','The Inheritance Games|The Grandest Game','Teen profilers work through a mystery built around how people think.'],
+['The Night Circus','Erin Morgenstern','Caraval','A competition between magicians takes place inside a traveling circus.'],
+['The Song of Achilles','Madeline Miller','The Iliad|The Heroes of Olympus','Patroclus tells the story of his bond with Achilles and the war at Troy.'],
+['The Rithmatist','Brandon Sanderson','The Empyrean|The Inheritance Games','A student investigates disappearances at a school where drawings can fight.'],
+['A Memory Called Empire','Arkady Martine','Heavenbreaker|The Folk of the Air','An ambassador enters an imperial court where her predecessor has died.'],
+['The Hero and the Crown','Robin McKinley','The Empyrean|The Heroes of Olympus','An outsider in a royal family teaches herself to face dragons.',true],
+['The Sherwood Ring','Elizabeth Marie Pope','Caraval|The Inheritance Games','Family history becomes a puzzle when an old house offers ghostly company.',true],
+['The Lie Tree','Frances Hardinge','Caraval|The Grandest Game','A girl investigates her father’s death with the help of a tree fed by lies.',true],
+['The Forgotten Beasts of Eld','Patricia A. McKillip','The Folk of the Air|The Empyrean','A reclusive keeper of magical beasts finds herself entangled in human politics.',true],
+['The Ghost Bride','Yangsze Choo','Caraval|The Folk of the Air','A marriage proposal draws a young woman into the afterlife in colonial Malaya.',true],
+['The Thief of Always','Clive Barker','Caraval','A wondrous house offers children everything they want at a hidden cost.',true],
+['The Silence of the Girls','Pat Barker','The Iliad','Briseis recounts the Trojan War from the Greek camp.',true],
+['The Space Between Worlds','Micaiah Johnson','Heavenbreaker','A traveler between parallel worlds uncovers the cost of her unusual job.',true]
+]);
 const bookKey = value => String(value || '').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 
 const mixKey = 'gj-reading-mix:' + new URL('.',location.href).pathname;
@@ -68,10 +88,10 @@ function recommendBooks(books) {
     return [{title,author,reason,deep:Boolean(deep),matches,score,source:matches[0].title}];
   });
   picks.sort((a,b) => b.score - a.score);
-  const deepLimit = {Familiar:1,Balanced:3,Adventurous:5}[mix.mode] ?? 3;
-  const selected = [...picks.filter(p=>!p.deep).slice(0,7-deepLimit), ...picks.filter(p=>p.deep).slice(0,deepLimit)];
+  const deepLimit = {Familiar:3,Balanced:7,Adventurous:11}[mix.mode] ?? 3;
+  const selected = [...picks.filter(p=>!p.deep).slice(0,16-deepLimit), ...picks.filter(p=>p.deep).slice(0,deepLimit)];
   for (const pick of picks) {
-    if (selected.length >= 7) break;
+    if (selected.length >= 16) break;
     if (!selected.includes(pick)) selected.push(pick);
   }
   const titles = selected.map(p => p.title);
@@ -82,14 +102,15 @@ function recommendBooks(books) {
   return selected;
 }
 
+function pickCatalog(p){if(p.deep)return 'Deep cuts';if(['The Final Gambit','Finale','The Wicked King','Fearless'].includes(p.title))return 'Continue a series';if(/Inheritance Games|Grandest Game/.test(readingPicks.find(row=>row[0]===p.title)?.[2]))return 'Mysteries and puzzles';return 'Fantasy and adventure'}
 function renderRecommendations(books,query) {
   const picks = recommendBooks(books);
   const visible = picks.filter(pick => matches(pick,query));
   $('count').textContent = visible.length + (visible.length === 1 ? ' recommendation' : ' recommendations');
-  $('results').innerHTML = [false,true].map(deep => {
-    const group = visible.filter(pick => pick.deep === deep);
+  $('results').innerHTML = ['Continue a series','Mysteries and puzzles','Fantasy and adventure','Deep cuts'].map(groupName => {
+    const group = visible.filter(pick => pickCatalog(pick) === groupName);
     if (!group.length) return '';
-    return '<section class="picks"><h2>' + (deep ? 'Deep cuts' : 'From your shelf') +
+    return '<section class="picks"><h2>' + esc(groupName) +
       '</h2><div class="cards">' + group.map(pick => '<article class="card"><h3>' + esc(pick.title) +
       '</h3><p>' + esc(pick.author) + '</p><p>' + esc(pick.reason) +
       '</p><small>Because you own <i>' + esc(pick.source) + '</i></small><div class="mix-actions"><button data-feedback="like" data-title="' + esc(pick.title) +
@@ -274,6 +295,7 @@ function render() {
     (!format || (book.format || 'Unrecorded') === format) &&
     (!status || (book.status || 'Unrecorded') === status) &&
     (!series || (book.series || 'Standalone') === series));
+  if (view === 'collection') return mobileBooks(shown);
   const sort = selection('sort');
   if (sort === 'Title A–Z') shown.sort((a,b) => a.title.localeCompare(b.title));
   if (sort === 'Group by series') shown.sort((a,b) => (a.series || 'Standalone').localeCompare(b.series || 'Standalone') ||
@@ -474,4 +496,71 @@ async function load() {
     $('retry').addEventListener('click',load);
   }
 }
+
+const mobileKey = storageKey + ':layout:';
+const getPref = (key,fallback) => { try{return JSON.parse(localStorage.getItem(mobileKey+key)) ?? fallback}catch{return fallback} };
+const putPref = (key,value) => localStorage.setItem(mobileKey+key,JSON.stringify(value));
+let layout = getPref('view','Shelf'), shelfSort = getPref('sort','My order'), order = getPref('order',[]);
+let saveRemote, dragId, installEvent, coverQueue=Promise.resolve(), coverCache=getPref('covers',{});
+const coverTasks=new Map();
+const exactISBN={'Fourth Wing':'9781649379290','Iron Flame':'9781649379399','Heavenbreaker':'9781649375704'};
+function setOrder(ids){order=ids;putPref('order',ids)}
+function orderedBooks(books){
+ const rank=new Map(order.map((id,i)=>[id,i]));
+ return [...books].sort((a,b)=>shelfSort==='Title A–Z'?a.title.localeCompare(b.title):
+ shelfSort==='Author A–Z'?(a.author||'').localeCompare(b.author||'')||a.title.localeCompare(b.title):
+ shelfSort==='Series order'?(a.series||a.title).localeCompare(b.series||b.title)||(a.volume??999)-(b.volume??999):
+ (rank.get(a.id)??Infinity)-(rank.get(b.id)??Infinity));
+}
+async function moveBook(id,target){
+ const ids=entries.filter(b=>b.kind==='book'&&b.shelf==='Owned').map(b=>b.id);
+ const all=[...order,...ids.filter(i=>!order.includes(i))];
+ const index=all.indexOf(id), dest=all.indexOf(target);
+ if(index<0||dest<0||index===dest)return;
+ all.splice(index,1);all.splice(dest,0,id);setOrder(all);render();
+ if(saveRemote)try{await saveRemote(all)}catch{notify('Saved on this device. Cloud sync failed.')}
+}
+function coverURL(b){
+ const isbn=b.isbn || exactISBN[b.title];
+ if(b.coverId>0)return 'https://covers.openlibrary.org/b/id/'+Number(b.coverId)+'-M.jpg?default=false';
+ if(isbn && /^[\dX-]{10,17}$/i.test(isbn))return 'https://covers.openlibrary.org/b/isbn/'+isbn+'-M.jpg?default=false';
+ const id=coverCache[b.title+'|'+(b.author||'')];return id>0?'https://covers.openlibrary.org/b/id/'+id+'-M.jpg?default=false':'';
+}
+function fetchCover(b){
+ const key=b.title+'|'+(b.author||'');
+ if(coverURL(b)||coverTasks.has(key)||!b.author)return;
+ coverTasks.set(key,true);
+ coverQueue=coverQueue.then(async()=>{
+ try{
+ const params=new URLSearchParams({title:b.title,author:b.author,fields:'title,cover_i',limit:'4'});
+ const r=await fetch('https://openlibrary.org/search.json?'+params,{signal:AbortSignal.timeout(8000)});
+ if(!r.ok)return;
+ const hit=(await r.json()).docs.find(d=>bookKey(d.title)===bookKey(b.title)&&d.cover_i>0);
+ if(hit){coverCache[key]=hit.cover_i;putPref('covers',coverCache);
+ for(const el of document.querySelectorAll('[data-cover]'))if(el.dataset.cover===b.id&&!el.querySelector('img')) el.insertAdjacentHTML('afterbegin',imageFor(b));}
+ }catch{}finally{await new Promise(resolve=>setTimeout(resolve,1100))}
+ });
+}
+function imageFor(b){const url=coverURL(b);return url?'<img loading="lazy" src="'+esc(url)+'" alt="">':''}
+document.addEventListener('error',e=>{if(e.target.matches?.('[data-cover] img'))e.target.remove()},true);
+function mobileBooks(shown){
+ const books=orderedBooks(shown), opts=(values,v)=>options(values,v);
+ $('count').textContent=books.length+' books';
+ $('results').innerHTML='<div class="layoutbar"><label>View<select id="book-view">'+opts(['Shelf','Gallery','List'],layout)+'</select></label><label>Arrange<select id="book-order">'+opts(['My order','Title A–Z','Author A–Z','Series order'],shelfSort)+'</select></label></div><div class="bookwall '+layout.toLowerCase()+'">'+books.map((b,i)=>{
+ const meta=[b.author,progressLabel(b)||b.status].filter(Boolean).map(esc).join(' · ');
+ const controls=shelfSort==='My order'?'<div class="moves"><button aria-label="Move '+esc(b.title)+' earlier" data-move="'+esc(b.id)+'" data-target="'+esc(books[i-1]?.id||'')+'" '+(i?'':'disabled')+'>‹</button><button aria-label="Move '+esc(b.title)+' later" data-move="'+esc(b.id)+'" data-target="'+esc(books[i+1]?.id||'')+'" '+(i===books.length-1?'disabled':'')+'>›</button></div>':'';
+ return '<article draggable="'+(shelfSort==='My order')+'" data-book="'+esc(b.id)+'"><button class="bookface" data-edit="'+esc(b.id)+'"><span class="jacket" data-cover="'+esc(b.id)+'" style="--cloth:'+colors[(b.title.length+b.title.charCodeAt(0))%colors.length]+'"><i>'+esc(b.title)+'</i>'+imageFor(b)+'</span><span class="caption"><strong>'+esc(b.title)+'</strong><small>'+meta+'</small></span></button>'+controls+'</article>';
+ }).join('')+'</div>'+(books.length?'':'<p>No books match these filters.</p>');
+ if(layout!=='Shelf')books.forEach(fetchCover);
+}
+document.addEventListener('change',e=>{if(e.target.id==='book-view'){layout=e.target.value;putPref('view',layout);render()}if(e.target.id==='book-order'){shelfSort=e.target.value;putPref('sort',shelfSort);render()}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-move]');if(b)moveBook(b.dataset.move,b.dataset.target)});
+document.addEventListener('dragstart',e=>{dragId=e.target.closest('[draggable=true]')?.dataset.book;if(dragId)e.dataTransfer.setData('text/plain',dragId)});
+document.addEventListener('dragover',e=>{if(dragId&&e.target.closest('[data-book]'))e.preventDefault()});
+document.addEventListener('drop',e=>{const target=e.target.closest('[data-book]');if(target&&dragId){e.preventDefault();moveBook(dragId,target.dataset.book)}dragId=null});
+document.addEventListener('dragend',()=>dragId=null);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e});
+document.getElementById('install-app').onclick=async()=>{if(installEvent){await installEvent.prompt();installEvent=null}else alert('iPhone: open in Safari, choose Share, then Add to Home Screen. Android: open the browser menu and choose Install app or Add to Home screen.')};
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
 load();

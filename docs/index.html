@@ -7,7 +7,7 @@
 <title>GJ’s Bookshelf</title>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./app.js"></script>
-</head>
+<meta name="theme-color" content="#213e33"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icon-180.png"></head>
 <body>
 <aside class="sidebar">
   <a class="brand" href="#collection"><span class="mark" aria-hidden="true">▥</span><span>GJ’s<br>Bookshelf</span></a>
@@ -17,7 +17,7 @@
     <a href="#recommended"><span aria-hidden="true">✧</span> Recommended</a>
     <a href="#wishlist"><span aria-hidden="true">♡</span> Wishlist</a>
     <a href="#notes"><span aria-hidden="true">▧</span> Notes</a>
-  </nav>
+  </nav><div class="phone-tools"><button id="install-app">Install</button><button id="sync-order">Sign in to sync order</button></div>
   <p class="sidebar-foot">Progress is saved in this browser.</p>
 </aside>
 <main>
@@ -38,5 +38,5 @@
 </main>
 <dialog id="editor"><form id="entry-form"><div class="dialog-head"><h2 id="editor-title"></h2><button type="button" class="quiet close" aria-label="Close editor">×</button></div><div id="fields"></div><p id="form-error" role="alert"></p><div class="actions"><button id="delete" type="button" class="danger">Delete</button><div><button type="button" class="quiet close">Cancel</button><button class="primary" type="submit">Save</button></div></div></form></dialog>
 <div id="toast" role="status"></div>
-</body>
+<script type="module" src="./sync.js"></script></body>
 </html>
