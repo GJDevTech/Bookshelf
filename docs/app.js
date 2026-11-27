@@ -1,44 +1,3 @@
-// Each pick names shelf titles, authors or series that share a specific reading appeal.
-const readingPicks = [
-  ['The Final Gambit','Jennifer Lynn Barnes','The Inheritance Games','It returns Avery to the Hawthorne inheritance and its last round of family puzzles.'],
-  ['The Wicked King','Holly Black','The Folk of the Air','Jude has won influence in Faerie. Holding onto it demands another round of bargains and political maneuvering.'],
-  ['Finale','Stephanie Garber','Caraval','Scarlett and Tella return as the magic spills beyond the boundaries of the game.'],
-  ['The Lightning Thief','Rick Riordan','The Heroes of Olympus|The Iliad','Percy’s first quest brings Greek gods, monsters and family grudges into the modern world.'],
-  ['Fearless','Lauren Roberts','Powerless','Paedyn and Kai face the consequences of their divided loyalties in Ilya.'],
-  ['Fireborne','Rosaria Munda','The Empyrean|The Traitor’s Game','Two dragon riders from opposite sides of a revolution compete for command.'],
-  ['The Scorpio Races','Maggie Stiefvater','Heavenbreaker|The Empyrean','A deadly race tests how well each competitor understands the creature they ride.'],
-  ['The Westing Game','Ellen Raskin','The Inheritance Games|The Grandest Game','An eccentric millionaire’s will turns his heirs into rivals in a word puzzle.'],
-  ['Circe','Madeline Miller','The Iliad|The Heroes of Olympus','A figure from Greek myth tells her own story of family, exile and power.'],
-  ['The Thief','Megan Whalen Turner','The Traitor’s Game|The Folk of the Air','A thief joins a royal expedition where the real prize depends on who can keep a secret.',true],
-  ['Crown Duel','Sherwood Smith','Powerless|The Traitor’s Game|The Folk of the Air','A young countess takes up a rebellion and discovers how differently a battle plays out at court.',true],
-  ['The Perilous Gard','Elizabeth Marie Pope','The Folk of the Air|Caraval','A girl sent away to a remote Tudor estate encounters a fairy court whose customs make every promise dangerous.',true],
-  ['The Changeover','Margaret Mahy','Caraval|The Folk of the Air','A girl seeks out a family of witches when an uncanny stranger lays claim to her little brother.',true],
-  ['The Icarus Hunt','Timothy Zahn','Heavenbreaker|The Inheritance Games|The Grandest Game','A mysterious cargo and an untrustworthy crew turn a space voyage into a closed-circle mystery.',true],
-  ['Lavinia','Ursula K. Le Guin','The Iliad|The Heroes of Olympus','A woman given only a few lines in the Aeneid gets to speak about the cost of an epic war.',true],
-  ['The Talented Ribkins','Ladee Hubbard','The Inheritance Games|The Grandest Game','An aging thief retraces his family’s secrets with a niece whose unusual talent changes the journey.',true],
-  ['Wyrd Sisters','Terry Pratchett','Macbeth','Three meddling witches, a murdered king and a traveling theater troupe turn familiar Scottish tragedy into comedy.',true],
-];
-
-readingPicks.push(...[
-['A Deadly Education','Naomi Novik','The Empyrean|Powerless','A lethal magical education turns finding allies into a survival skill.'],
-['The Raven Boys','Maggie Stiefvater','Caraval|The Inheritance Games','An old legend pulls a close-knit group into a search full of secrets.'],
-['The Gilded Wolves','Roshani Chokshi','Caraval|The Inheritance Games','A crew of specialists follows puzzles through an alternate Paris.'],
-['An Ember in the Ashes','Sabaa Tahir','Powerless|The Traitor’s Game','An enslaved scholar and a soldier make dangerous choices inside an empire.'],
-['The Winner’s Curse','Marie Rutkoski','The Folk of the Air|Powerless','A strategist falls for someone whose loyalties could overturn her world.'],
-['The Naturals','Jennifer Lynn Barnes','The Inheritance Games|The Grandest Game','Teen profilers work through a mystery built around how people think.'],
-['The Night Circus','Erin Morgenstern','Caraval','A competition between magicians takes place inside a traveling circus.'],
-['The Song of Achilles','Madeline Miller','The Iliad|The Heroes of Olympus','Patroclus tells the story of his bond with Achilles and the war at Troy.'],
-['The Rithmatist','Brandon Sanderson','The Empyrean|The Inheritance Games','A student investigates disappearances at a school where drawings can fight.'],
-['A Memory Called Empire','Arkady Martine','Heavenbreaker|The Folk of the Air','An ambassador enters an imperial court where her predecessor has died.'],
-['The Hero and the Crown','Robin McKinley','The Empyrean|The Heroes of Olympus','An outsider in a royal family teaches herself to face dragons.',true],
-['The Sherwood Ring','Elizabeth Marie Pope','Caraval|The Inheritance Games','Family history becomes a puzzle when an old house offers ghostly company.',true],
-['The Lie Tree','Frances Hardinge','Caraval|The Grandest Game','A girl investigates her father’s death with the help of a tree fed by lies.',true],
-['The Forgotten Beasts of Eld','Patricia A. McKillip','The Folk of the Air|The Empyrean','A reclusive keeper of magical beasts finds herself entangled in human politics.',true],
-['The Ghost Bride','Yangsze Choo','Caraval|The Folk of the Air','A marriage proposal draws a young woman into the afterlife in colonial Malaya.',true],
-['The Thief of Always','Clive Barker','Caraval','A wondrous house offers children everything they want at a hidden cost.',true],
-['The Silence of the Girls','Pat Barker','The Iliad','Briseis recounts the Trojan War from the Greek camp.',true],
-['The Space Between Worlds','Micaiah Johnson','Heavenbreaker','A traveler between parallel worlds uncovers the cost of her unusual job.',true]
-]);
 const bookKey = value => String(value || '').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 
 const mixKey = 'gj-reading-mix:' + new URL('.',location.href).pathname;
@@ -48,8 +7,7 @@ function readMix() {
   return {mode:'Balanced',focus:'',liked:[],hidden:[],recent:[],...saved};
 }
 let mix = readMix();
-let mixSignature = '';
-let currentPicks = [];
+
 function persistMix() {
   try { localStorage.setItem(mixKey,JSON.stringify(mix)); } catch {}
 }
@@ -68,56 +26,145 @@ function changeMix(action,value) {
   if (action === 'hide') mix.hidden = [...new Set([...mix.hidden,value])];
   if (action === 'like') mix.liked = mix.liked.includes(value) ? mix.liked.filter(t => t !== value) : [...mix.liked,value];
   if (action === 'reset-mix') Object.assign(mix,{mode:'Balanced',focus:'',liked:[],hidden:[]});
-  mixSignature = '';
-  persistMix();
-}
-function recommendBooks(books) {
-  const signature = JSON.stringify(books.map(({title,series,author,shelf}) => [title,series,author,shelf]));
-  if (signature === mixSignature) return currentPicks;
-  const favoriteAnchors = new Set(readingPicks.filter(row => mix.liked.includes(row[0])).flatMap(row => row[2].split('|')));
-  const listed = new Set(books.map(book => bookKey(book.title)));
-  const owned = books.filter(book => book.shelf === 'Owned');
-  const picks = readingPicks.flatMap(([title,author,anchors,reason,deep]) => {
-    if (mix.hidden.includes(title) || listed.has(bookKey(title))) return [];
-    const keys = new Set(anchors.split('|').map(bookKey));
-    const matches = owned.filter(book => (!mix.focus || (book.series || book.title) === mix.focus) && [book.title,book.series,book.author].some(value => keys.has(bookKey(value))));
-    if (!matches.length) return [];
-    const lastShown = mix.recent.indexOf(title);
-    const affinity = anchors.split('|').filter(anchor => favoriteAnchors.has(anchor)).length;
-    const score = Math.random() + affinity * 0.9 + (lastShown < 0 ? 100 : lastShown / 2);
-    return [{title,author,reason,deep:Boolean(deep),matches,score,source:matches[0].title}];
-  });
-  picks.sort((a,b) => b.score - a.score);
-  const deepLimit = {Familiar:3,Balanced:7,Adventurous:11}[mix.mode] ?? 3;
-  const selected = [...picks.filter(p=>!p.deep).slice(0,16-deepLimit), ...picks.filter(p=>p.deep).slice(0,deepLimit)];
-  for (const pick of picks) {
-    if (selected.length >= 16) break;
-    if (!selected.includes(pick)) selected.push(pick);
+  if(action==='like'){
+    const pick=chosenBooks.find(p=>p.title===value);
+    mix.signals={...mix.signals};
+    if(pick && mix.liked.includes(value))mix.signals[value]=[pick.author,...pick.topics].filter(Boolean);
+    else delete mix.signals[value];
   }
-  const titles = selected.map(p => p.title);
-  mix.recent = [...titles,...mix.recent.filter(t => !titles.includes(t))].slice(0,readingPicks.length);
+  if(action==='reset-mix')mix.signals={};
+  if(action==='new-mix'){feedKey='';mixGeneration++}
+  pickedKey='';
   persistMix();
-  currentPicks = selected;
-  mixSignature = signature;
-  return selected;
 }
-
-function pickCatalog(p){if(p.deep)return 'Deep cuts';if(['The Final Gambit','Finale','The Wicked King','Fearless'].includes(p.title))return 'Continue a series';if(/Inheritance Games|Grandest Game/.test(readingPicks.find(row=>row[0]===p.title)?.[2]))return 'Mysteries and puzzles';return 'Fantasy and adventure'}
+const feedCacheKey = mixKey + ':live:v1';
+let feedKey = '', feed = [], loadingFeed = false, feedNotice = '', feedController;
+let pickedKey = '', chosenBooks = [];
+let mixGeneration = 0;
+const readerSignals = () => mix.signals || {};
+const sample = values => values.map(value=>({value,n:Math.random()})).sort((a,b)=>a.n-b.n).map(row=>row.value);
+function cachedFeeds() {
+  try { return JSON.parse(localStorage.getItem(feedCacheKey)) || {}; } catch { return {}; }
+}
+async function catalogJSON(url,signal) {
+  const timeout = AbortSignal.timeout(12000);
+  const response = await fetch(url,{signal:AbortSignal.any([signal,timeout])});
+  if (!response.ok) throw Error('Catalog request failed');
+  return response.json();
+}
+async function openSearch(params,signal) {
+  const fields='key,title,author_name,subject,edition_count,readinglog_count';
+  const json=await catalogJSON('https://openlibrary.org/search.json?'+new URLSearchParams({fields,limit:'36',lang:'en',...params}),signal);
+  if (!Array.isArray(json.docs)) throw Error('Missing records');
+  return json.docs;
+}
+function usefulSubjects(row) {
+  return (row?.subject || []).filter(s=>typeof s==='string' && s.length<46 &&
+    !/^(fiction|literature|accessible book|protected daisy|in library|large type books|juvenile fiction|young adult fiction|open library|translations|overdrive|new york times)/i.test(s));
+}
+async function fetchFeed(seeds,signal) {
+  const rows=[], errors=[];
+  let successes=0;
+  async function collect(operation) {
+    try {const result=await operation();successes++;return result} catch(e){if(signal.aborted)throw e;errors.push(e);return []}
+  }
+  const waitOL=()=>new Promise(resolve=>setTimeout(resolve,1100));
+  function appendOL(records,seed,group,detail) {
+    for(const row of records){
+      const key=String(row.key||'').split('/').pop();
+      if(!/^OL\d+W$/.test(key)||!row.title)continue;
+      rows.push({title:row.title,author:(row.author_name||[]).join(', '),source:seed.title,group,
+        detail,provider:'Open Library',url:'https://openlibrary.org/works/'+key,
+        topics:usefulSubjects(row).slice(0,5), editions:row.edition_count??null, readers:row.readinglog_count??null});
+    }
+  }
+  async function gutenberg(seed,params,detail) {
+    const result=await collect(async()=>{const data=await catalogJSON('https://gutendex.com/books/?'+new URLSearchParams({languages:'en',...params}),signal);
+      if(!Array.isArray(data.results))throw Error('Missing records');return data.results});
+    for(const row of result){if(!row.title||!Number.isInteger(row.id))continue;
+      rows.push({title:row.title,author:(row.authors||[]).map(a=>a.name.split(', ').reverse().join(' ')).join(', '),source:seed.title,
+        group:'From Project Gutenberg',detail,provider:'Gutendex',url:'https://www.gutenberg.org/ebooks/'+row.id,topics:(row.subjects||[]).slice(0,5)});
+    }
+  }
+  const anchor=seeds[0],authorSeed=seeds.find(b=>b.author)||anchor;
+  const archive=gutenberg(authorSeed,{search:authorSeed.author||authorSeed.title},'Catalog search for '+(authorSeed.author||authorSeed.title));
+  const ol=async()=>{
+    if(authorSeed.author) {
+      appendOL(await collect(()=>openSearch({author:authorSeed.author},signal)),authorSeed,'Authors on your shelf','More by '+authorSeed.author);
+      await waitOL();
+    }
+    const records=await collect(()=>openSearch({title:anchor.title,...(anchor.author?{author:anchor.author}:{}),limit:'5'},signal));
+    const matched=records.find(r=>bookKey(r.title)===bookKey(anchor.title));
+    const topics=usefulSubjects(matched);
+    if(topics.length){
+      const topic=sample(topics.slice(0,5))[0];
+      await waitOL();
+      await Promise.all([gutenberg(anchor,{topic},'Shares the catalog topic “'+topic+'”'),
+        collect(()=>openSearch({subject:topic,sort:'random'},signal)).then(rs=>appendOL(rs,anchor,'Related subjects','Shares the catalog subject “'+topic+'”'))]);
+    }
+    const seriesSeed=seeds.find(b=>b.series&&b.author);
+    if(seriesSeed){
+      await waitOL();
+      const phrase=s=>'"'+s.replace(/["\\]/g,' ')+'"';
+      appendOL(await collect(()=>openSearch({q:'author:'+phrase(seriesSeed.author)+' AND (series:'+phrase(seriesSeed.series)+' OR title:'+phrase(seriesSeed.series)+')'},signal)),seriesSeed,'Series discoveries','Catalog match for '+seriesSeed.series);
+    }
+  };
+  await Promise.all([ol(),archive]);
+  return {rows,partial:errors.length>0,successes};
+}
+function startFeed(key,seeds) {
+  feedController?.abort();feedController=new AbortController();
+  const signal=feedController.signal, cache=cachedFeeds(), saved=cache[key];
+  feedKey=key;feed=saved?.rows||[];pickedKey='';feedNotice='';
+  if(!seeds.length){loadingFeed=false;return}
+  if(saved && Date.now()-saved.time<6*3600000 && mixGeneration===0){loadingFeed=false;feedNotice='From your recent catalog lookup.';return}
+  loadingFeed=true;
+  fetchFeed(sample(seeds),signal).then(({rows,partial})=>{
+    if(signal.aborted)return;
+    if(rows.length){
+      feed=rows;
+      const updated=Object.entries(cachedFeeds()).filter(([k])=>k!==key).slice(-5);
+      try{localStorage.setItem(feedCacheKey,JSON.stringify(Object.fromEntries([...updated,[key,{time:Date.now(),rows}]])))}catch{}
+    } else if(!partial)feed=[];
+    feedNotice=partial?(rows.length?'Some catalog requests were unavailable.':feed.length?'Catalogs unavailable. Showing saved results.':'Catalogs unavailable. Choose New mix to retry.'):'';
+  }).catch(()=>{if(!signal.aborted)feedNotice='Could not reach the catalogs. Choose New mix to retry.'})
+    .finally(()=>{if(!signal.aborted){loadingFeed=false;pickedKey='';if(view==='recommended')render()}});
+}
+function chooseFromFeed(books) {
+  const banned=new Set([...books.map(b=>b.title),...mix.hidden].map(bookKey));
+  const signals=mix.liked.flatMap(title=>readerSignals()[title]||[]);
+  const seen=new Set(),ranked=[];
+  for(const row of sample(feed)){
+    const key=bookKey(row.title);
+    if(banned.has(key)||seen.has(key))continue;
+    seen.add(key);
+    const affinities=[row.author,...row.topics].filter(Boolean);
+    const deep=row.group==='Related subjects' && Number.isFinite(row.editions) && row.editions<=5 &&
+        (!Number.isFinite(row.readers)||row.readers<100);
+    const group=deep?'Deep cuts':row.group;
+    const score=Math.random()*2 + affinities.filter(s=>signals.includes(s)).length*2 +
+      (mix.recent.includes(row.title)?0:4) + (mix.mode==='Familiar'&&group==='Authors on your shelf'?3:0) +
+      (mix.mode==='Adventurous'&&(deep||group==='From Project Gutenberg')?3:0);
+    ranked.push({...row,group,score});
+  }
+  ranked.sort((a,b)=>b.score-a.score);
+  const groups=new Set(ranked.map(p=>p.group));
+  const first=[...groups].flatMap(g=>ranked.filter(p=>p.group===g).slice(0,2));
+  return [...first,...ranked.filter(p=>!first.includes(p))].slice(0,24);
+}
 function renderRecommendations(books,query) {
-  const picks = recommendBooks(books);
-  const visible = picks.filter(pick => matches(pick,query));
-  $('count').textContent = visible.length + (visible.length === 1 ? ' recommendation' : ' recommendations');
-  $('results').innerHTML = ['Continue a series','Mysteries and puzzles','Fantasy and adventure','Deep cuts'].map(groupName => {
-    const group = visible.filter(pick => pickCatalog(pick) === groupName);
-    if (!group.length) return '';
-    return '<section class="picks"><h2>' + esc(groupName) +
-      '</h2><div class="cards">' + group.map(pick => '<article class="card"><h3>' + esc(pick.title) +
-      '</h3><p>' + esc(pick.author) + '</p><p>' + esc(pick.reason) +
-      '</p><small>Because you own <i>' + esc(pick.source) + '</i></small><div class="mix-actions"><button data-feedback="like" data-title="' + esc(pick.title) +
-      '" aria-pressed="' + mix.liked.includes(pick.title) + '">More like this</button><button data-feedback="hide" data-title="' +
-      esc(pick.title) + '">Not interested</button></div></article>').join('') + '</div></section>';
-  }).join('') || '<p class="empty">' + (picks.length ? 'No recommendations match your search.' :
-    'No matches with these preferences. Try the whole shelf or reset your preferences.') + '</p>';
+  const seeds=books.filter(b=>b.shelf==='Owned'&&(!mix.focus||(b.series||b.title)===mix.focus));
+  const key=JSON.stringify(seeds.map(b=>[b.title,b.author,b.series]));
+  if(key!==feedKey)startFeed(key,seeds);
+  const sig=JSON.stringify([key,books.map(b=>b.title),mix.mode,mix.hidden,mix.liked,mixGeneration]);
+  if(pickedKey!==sig){chosenBooks=chooseFromFeed(books);pickedKey=sig;
+    if(chosenBooks.length){mix.recent=[...new Set([...chosenBooks.map(b=>b.title),...mix.recent])].slice(0,96);persistMix()}}
+  const visible=chosenBooks.filter(p=>matches(p,query));
+  $('count').textContent=visible.length+' recommendations';
+  const status=loadingFeed?'Searching book catalogs…':feedNotice;
+  const html=[...new Set(visible.map(p=>p.group))].map(g=>'<section class="picks"><h2>'+esc(g)+'</h2><div class="cards">'+
+    visible.filter(p=>p.group===g).map(p=>'<article class="card"><h3><a href="'+esc(p.url)+'" target="_blank" rel="noopener noreferrer">'+esc(p.title)+'</a></h3><p>'+esc(p.author)+'</p><p>'+esc(p.detail)+'</p><small>'+esc(p.provider)+' · Inspired by '+esc(p.source)+'</small><div class="mix-actions"><button data-feedback="like" data-title="'+esc(p.title)+'" aria-pressed="'+mix.liked.includes(p.title)+'">More like this</button><button data-feedback="hide" data-title="'+esc(p.title)+'">Not interested</button></div></article>').join('')+'</div></section>').join('');
+  $('results').innerHTML=(status?'<p role="status">'+esc(status)+'</p>':'')+html+(!html&&!loadingFeed&&!feedNotice.startsWith('Catalogs unavailable')?'<p class="empty">'+(query?'No results match your search.':seeds.length?'No eligible matches. Try New mix or another inspiration.':'Add an owned book to get recommendations.')+'</p>':'');
 }
 
 const pagesMode = document.documentElement.dataset.storage === 'browser';
