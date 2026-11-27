@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-storage="browser">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="GJ’s personal book catalog, wishlist, series, and notes.">
+<title>GJ’s Bookshelf</title>
+<link rel="stylesheet" href="./style.css">
+<script defer src="./app.js"></script>
+</head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="#collection"><span class="mark" aria-hidden="true">▥</span><span>GJ’s<br>Bookshelf</span></a>
+  <nav aria-label="Bookshelf views">
+    <a href="#collection"><span aria-hidden="true">▤</span> Collection</a>
+    <a href="#series"><span aria-hidden="true">▥</span> Series tracker</a>
+    <a href="#recommended"><span aria-hidden="true">✧</span> Recommended</a>
+    <a href="#wishlist"><span aria-hidden="true">♡</span> Wishlist</a>
+    <a href="#notes"><span aria-hidden="true">▧</span> Notes</a>
+  </nav>
+  <p class="sidebar-foot">Progress is saved in this browser.</p>
+</aside>
+<main>
+  <header class="hero">
+    <div><p class="eyebrow" id="breadcrumb">PERSONAL LIBRARY</p><h1 id="title">My collection</h1><p id="subtitle">Browse the books you own and keep track of what you’re reading.</p></div>
+    <div class="books" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <button class="primary" id="add" disabled>＋ Add book</button>
+  </header>
+  <section id="summary" aria-label="Collection summary"></section>
+  <section class="workspace" aria-label="Browse and manage entries">
+    <div class="controls">
+      <label class="search"><span aria-hidden="true">⌕</span><input id="query" type="search" aria-label="Search" placeholder="Search titles, authors, series…"></label>
+      <div id="filters"></div>
+    </div>
+    <div id="result-head"><p id="count" aria-live="polite"></p><button id="export" class="quiet" hidden>Export catalog</button></div>
+    <div id="results"><p class="empty">Loading your bookshelf…</p></div>
+  </section>
+</main>
+<dialog id="editor"><form id="entry-form"><div class="dialog-head"><h2 id="editor-title"></h2><button type="button" class="quiet close" aria-label="Close editor">×</button></div><div id="fields"></div><p id="form-error" role="alert"></p><div class="actions"><button id="delete" type="button" class="danger">Delete</button><div><button type="button" class="quiet close">Cancel</button><button class="primary" type="submit">Save</button></div></div></form></dialog>
+<div id="toast" role="status"></div>
+</body>
+</html>
