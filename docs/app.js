@@ -543,13 +543,44 @@ function fetchCover(b){
 }
 function imageFor(b){const url=coverURL(b);return url?'<img loading="lazy" src="'+esc(url)+'" alt="">':''}
 document.addEventListener('error',e=>{if(e.target.matches?.('[data-cover] img'))e.target.remove()},true);
+
+let arrangingSpines=false;
+const spineSets=[
+ ['celestial',['#273952','#40315c'],'orbit'],
+ ['Empyrean',['#222d33','#632e26'],'wing'],
+ ['Folk of the Air',['#304735'],'crown'],
+ ['Grandest Game|Inheritance Games',['#184d49','#45324f','#343e53','#36523b'],'key'],
+ ['Caraval',['#762d3f','#283e55'],'star'],
+ ['Powerless',['#274c58','#623843','#443153'],'blade'],
+ ['Heroes of Olympus|Iliad',['#775032','#27546b','#62533a','#363b49','#513746'],'laurel'],
+ ['Macbeth|Traitor',['#582a35','#393a4c'],'crown'],
+ ['Hexed',['#453555'],'star']
+];
+const emblems={
+ orbit:'<ellipse cx="16" cy="16" rx="12" ry="5" transform="rotate(-35 16 16)"/><circle cx="16" cy="16" r="7"/><circle cx="25" cy="7" r="1.3"/>',
+ wing:'<path d="M4 24Q12 9 28 5Q22 16 10 25L15 17L6 24M12 20L24 9M15 15L22 12"/>',
+ crown:'<path d="M4 10l7 5 5-10 5 10 7-5-4 13H8zM9 26h14"/>',
+ key:'<circle cx="11" cy="11" r="6"/><circle cx="11" cy="11" r="2"/><path d="m15 15 12 12m-5-5 4-4m-7 1 3-3"/>',
+ star:'<path d="m16 3 3 9 9 4-9 3-3 10-3-10-9-3 9-4z"/><circle cx="16" cy="16" r="3"/>',
+ blade:'<path d="m16 3 3 5-2 13h-2L13 8zM9 21h14M16 21v7m-3 0h6"/>',
+ laurel:'<path d="M5 25Q17 22 25 5M10 23Q5 22 5 16q5 1 5 7Zm5-4q-5-2-5-8 5 2 5 8Zm5-6q-4-2-3-7 4 2 3 7Zm-7 8q6 2 10-3-6-1-10 3Zm7-8q6 1 9-4-6 0-9 4Z"/>'
+};
+function binding(book){
+ const label=book.series+' '+book.title;
+ const [,palette,mark]=spineSets.find(([keys])=>keys.split('|').some(k=>label.includes(k)))||spineSets[0];
+ const n=Array.from(book.title).reduce((v,c)=>(v*31+c.codePointAt(0))>>>0,0);
+ const vol=Number(book.volume),ink=palette[(vol>0?Math.ceil(vol)-1:n)%palette.length];
+ const author=(book.author||'').trim().split(/\s+/).pop();
+ return '<span class="binding" style="--leather:'+ink+';--height:'+(235+n%23)+'px"><span class="stamp" aria-hidden="true"><svg viewBox="0 0 32 32">'+emblems[mark]+'</svg></span><span class="spine-lettering"><strong>'+esc(book.title)+'</strong>'+(author?'<small>'+esc(author)+'</small>':'')+'</span><span class="footstamp" aria-hidden="true">'+(vol>0?esc(book.volume):'◆')+'</span></span>';
+}
+
 function mobileBooks(shown){
  const books=orderedBooks(shown), opts=(values,v)=>options(values,v);
  $('count').textContent=books.length+' books';
- $('results').innerHTML='<div class="layoutbar"><label>View<select id="book-view">'+opts(['Shelf','Gallery','List'],layout)+'</select></label><label>Arrange<select id="book-order">'+opts(['My order','Title A–Z','Author A–Z','Series order'],shelfSort)+'</select></label></div><div class="bookwall '+layout.toLowerCase()+'">'+books.map((b,i)=>{
+ $('results').innerHTML='<div class="layoutbar"><label>View<select id="book-view">'+opts(['Shelf','Gallery','List'],layout)+'</select></label><label>Arrange<select id="book-order">'+opts(['My order','Title A–Z','Author A–Z','Series order'],shelfSort)+'</select></label>'+(layout==='Shelf'&&shelfSort==='My order'?'<button type="button" id="arrange-bindings" aria-pressed="'+arrangingSpines+'">'+(arrangingSpines?'Done arranging':'Arrange books')+'</button>':'')+'</div><div class="bookwall '+layout.toLowerCase()+(layout==='Shelf'&&arrangingSpines&&shelfSort==='My order'?' arranging':'')+'">'+books.map((b,i)=>{
  const meta=[b.author,progressLabel(b)||b.status].filter(Boolean).map(esc).join(' · ');
  const controls=shelfSort==='My order'?'<div class="moves"><button aria-label="Move '+esc(b.title)+' earlier" data-move="'+esc(b.id)+'" data-target="'+esc(books[i-1]?.id||'')+'" '+(i?'':'disabled')+'>‹</button><button aria-label="Move '+esc(b.title)+' later" data-move="'+esc(b.id)+'" data-target="'+esc(books[i+1]?.id||'')+'" '+(i===books.length-1?'disabled':'')+'>›</button></div>':'';
- return '<article draggable="'+(shelfSort==='My order')+'" data-book="'+esc(b.id)+'"><button class="bookface" data-edit="'+esc(b.id)+'"><span class="jacket" data-cover="'+esc(b.id)+'" style="--cloth:'+colors[(b.title.length+b.title.charCodeAt(0))%colors.length]+'"><i>'+esc(b.title)+'</i>'+imageFor(b)+'</span><span class="caption"><strong>'+esc(b.title)+'</strong><small>'+meta+'</small></span></button>'+controls+'</article>';
+ return '<article draggable="'+(shelfSort==='My order')+'" data-book="'+esc(b.id)+'"><button class="bookface" data-edit="'+esc(b.id)+'" aria-label="'+esc(b.title)+'">'+(layout==='Shelf'?binding(b):'')+'<span class="jacket" data-cover="'+esc(b.id)+'" style="--cloth:'+colors[(b.title.length+b.title.charCodeAt(0))%colors.length]+'"><i>'+esc(b.title)+'</i>'+imageFor(b)+'</span><span class="caption"><strong>'+esc(b.title)+'</strong><small>'+meta+'</small></span></button>'+controls+'</article>';
  }).join('')+'</div>'+(books.length?'':'<p>No books match these filters.</p>');
  if(layout!=='Shelf')books.forEach(fetchCover);
 }
@@ -562,5 +593,7 @@ document.addEventListener('dragend',()=>dragId=null);
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e});
 document.getElementById('install-app').onclick=async()=>{if(installEvent){await installEvent.prompt();installEvent=null}else alert('iPhone: open in Safari, choose Share, then Add to Home Screen. Android: open the browser menu and choose Install app or Add to Home screen.')};
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+document.addEventListener('click',e=>{if(e.target.id==='arrange-bindings'){arrangingSpines=!arrangingSpines;render();document.getElementById('arrange-bindings')?.focus()}});
 
 load();
